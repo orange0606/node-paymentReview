@@ -1,18 +1,49 @@
-// 导入 express 模块
-const express = require('express')
-// 创建 express 的服务器实例
-const app = express()
+// 引入数据库
+var mysql = require('mysql');
+
 // 导入fs模块
-const fs = require('fs')
+const fs = require('fs');
 
-// 引入数据库mysql连接
-const { connection } = require('./database/index.js');
+// 导入 express 模块
+const express = require('express');
 
+// 创建 express 的服务器实例
+const app = express();
 // 注意：除了错误级别的中间件，其他的中间件，必须在路由之前进行配置
 // 通过 express.json() 这个中间件，解析表单中的 JSON 格式的数据
-app.use(express.json())
+app.use(express.json());
 // 通过 express.urlencoded() 这个中间件，来解析 表单中的 url-encoded 格式的数据
-app.use(express.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: false }));
+
+// 引入db配置
+const { db } = require('./database/config');
+// 通过createPool方法连接服务器
+const connection = mysql.createPool(db);
+
+
+// 获取用户列表
+app.get("/listUsers", (req, res) => {
+  var usersSQL = 'SELECT * FROM orange_lxdb.users';
+
+  // 通过db.query方法来执行mysql  测试是否连接成功
+  // 查询语句 data 得到的是一个数组，  增删改得到的是受影响的行数
+  connection.query(usersSQL, (err, data) => {
+    if (err) return console.log(err.message); // 连接失败
+    console.log('orange => data : ', data)
+    var users = data || [];
+    users.forEach(element => delete element.passWord);
+    
+    // 否则获取成功，将结果返回给客户端res.send
+    res.send({
+      status: 200,
+      msg: '数据获取成功',
+      data
+    })
+    // 当连接池不需要使用时，关闭连接池
+    connection.end()
+  })
+
+});
 
 app.get("/aaa", (req, res) => {
   res.statusCode = 200;
@@ -20,19 +51,20 @@ app.get("/aaa", (req, res) => {
   res.end("/aaa");
 });
 
-// 获取用户列表
-app.get("/listUsers", (req, res) => {
-  fs.readFile(__dirname + "/json/users.json", 'utf8', (err, data) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.statusCode = 200;
-    const jsonData = JSON.parse(data) || { data: [] };
-    const users = jsonData.data.map(item => {
-      return { id: item.id, name: item.name, profession: item.profession }
-    })
-    const body = { data: [ ...users, ...users, ...users ] };
-    res.end(JSON.stringify(body));
-  })
-});
+// // 获取用户列表
+// app.get("/listUsers", (req, res) => {
+//   fs.readFile(__dirname + "/json/users.json", 'utf8', (err, data) => {
+//     res.setHeader('Content-Type', 'application/json');
+//     res.statusCode = 200;
+//     const jsonData = JSON.parse(data) || { data: [] };
+//     const users = jsonData.data.map(item => {
+//       return { id: item.id, name: item.name, profession: item.profession }
+//     })
+//     const body = { data: [ ...users, ...users, ...users ] };
+//     res.end(JSON.stringify(body));
+//   })
+// });
+
 // 获取用户列表
 app.get("/getDetail/:id", (req, res) => {
   fs.readFile(__dirname + "/json/users.json", 'utf8', (err, data) => {
