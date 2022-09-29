@@ -9,8 +9,8 @@ app.use(express.urlencoded({ extended: false }))
 // 通过createPool方法连接服务器
 const db = mysql.createPool({
     host: '127.0.0.1', // 表示连接某个服务器上的mysql数据库
-    user: 'root', // 数据库的用户名 （默认为root）
-    password: 'root', // 数据库的密码 (默认为root)
+    user: 'orange', // 数据库的用户名 （默认为root）
+    password: 'orange06', // 数据库的密码 (默认为root)
     database: 'web67',// 创建的本地数据库名称
 })
 // 通过nodejs获取数据库中的数据  并返回给客户端------------------ 
